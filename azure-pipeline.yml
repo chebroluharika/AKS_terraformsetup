@@ -2,8 +2,7 @@ name: $(BuildDefinitionName)_$(date:yyyyMMdd)$(rev:.r)
 
 trigger: none
 
-pool:
-  vmImage: 'ubuntu-latest'
+pr: none
 
 parameters:
 
@@ -37,69 +36,61 @@ stages :
   - stage: terraform_plan_apply
     condition: ne('${{ parameters.Action }}', 'Destroy')
     jobs:
-    - job: TerraformInstall
-      continueOnError: false
-      steps:
-      - task: TerraformInstaller@0
-        displayName: Terraform Install
-        inputs:
-          terraformVersion: 'latest'
-      - task: TerraformCLI@0
-        displayName: Terraform Init
-        inputs:
-          command: 'init'
-          backendServiceArm: '${{ variables.backendServiceArm }}'
-          backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-          backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-          backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-          backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
-          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-          allowTelemetryCollection: false
-      - task: TerraformCLI@0
-        displayName: Terraform Validate
-        inputs:
-          command: 'validate'
-          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
-          allowTelemetryCollection: false
+      - job: terraform_apply
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'install'
+            inputs:
+              terraformVersion: '${{ variables.terraform_version }}'
+          - task: TerraformTaskV2@2
+            displayName: 'init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: '${{ variables.backendServiceArm }}'
+              backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
+              backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
+              backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
+              backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          - task: TerraformTaskV2@2
+            displayName: 'plan'
+            condition: and(succeeded(), eq(variables['Action'], 'Plan'))
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          - task: TerraformTaskV2@2
+            displayName: 'apply'
+            condition: and(succeeded(), eq(variables['Action'], 'Apply'))
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
 
-- stage: DeployClusters
-  jobs:
-    - deployment: DeployDevCluster
-      displayName: DeployDevCluster
-      pool:
-        vmImage: 'ubuntu-latest'
-      environment: $(DEV_ENVIRONMENT)      
-      strategy:
-        runOnce:
-          deploy:
-            steps:            
-            - task: TerraformInstaller@0
-              displayName: Terraform Install
-              inputs:
-                terraformVersion: 'latest'
-
-            - task: TerraformCLI@0
-              displayName: Terraform Init
-              inputs:
-                command: 'init'
-                backendServiceArm: '${{ variables.backendServiceArm }}'
-                backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-                backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-                backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-                backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
-                workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-                allowTelemetryCollection: false
-            - task: TerraformCLI@0
-              displayName: Terraform Plan
-              inputs:
-                command: 'plan'
-                workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-                environmentServiceName: '${{ variables.backendServiceArm }}'
-                allowTelemetryCollection: false
-            - task: TerraformCLI@0
-              displayName: Terraform Apply
-              inputs:
-                command: 'apply'
-                workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-                environmentServiceName: '${{ variables.backendServiceArm }}'
-                allowTelemetryCollection: false
+  - stage: terraform_destroy
+    condition: contains('${{ parameters.Action }}', 'Destroy')
+    jobs:
+      - job: terraform_destroy
+        steps:
+          - task: TerraformTaskV2@2
+            displayName: 'init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: '${{ variables.backendServiceArm }}'
+              backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
+              backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
+              backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
+              backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          - task: TerraformTaskV2@2
+            displayName: 'destroy'
+            condition: and(succeeded(), eq(variables['action'], 'Destroy'))
+            inputs:
+              provider: 'azurerm'
+              command: 'destroy'
+              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
