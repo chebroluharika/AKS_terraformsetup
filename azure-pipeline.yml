@@ -73,27 +73,27 @@ stages :
           #     environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
           #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
 
-  - stage: terraform_destroy
-    condition: contains('${{ parameters.Action }}', 'Destroy')
-    jobs:
-      - job: terraform_destroy
-        steps:
-          - task: TerraformTaskV2@2
-            displayName: 'init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              backendServiceArm: '${{ variables.backendServiceArm }}'
-              backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-              backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-              backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-              backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-          - task: TerraformTaskV2@2
-            displayName: 'destroy'
-            condition: and(succeeded(), eq(variables['action'], 'Destroy'))
-            inputs:
-              provider: 'azurerm'
-              command: 'destroy'
-              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+  # - stage: terraform_destroy
+  #   condition: contains('${{ parameters.Action }}', 'Destroy')
+  #   jobs:
+  #     - job: terraform_destroy
+  #       steps:
+  #         - task: TerraformTaskV2@2
+  #           displayName: 'init'
+  #           inputs:
+  #             provider: 'azurerm'
+  #             command: 'init'
+  #             backendServiceArm: '${{ variables.backendServiceArm }}'
+  #             backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
+  #             backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
+  #             backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
+  #             backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
+  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+  #         - task: TerraformTaskV2@2
+  #           displayName: 'destroy'
+  #           condition: and(succeeded(), eq(variables['action'], 'Destroy'))
+  #           inputs:
+  #             provider: 'azurerm'
+  #             command: 'destroy'
+  #             environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+  #             workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
