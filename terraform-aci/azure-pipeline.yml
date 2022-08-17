@@ -9,7 +9,7 @@ parameters:
   - name: Action
     displayName: Action
     type: string
-    default: 'Plan'
+    default: 'Apply'
     values:
     - Plan
     - Apply
@@ -26,8 +26,6 @@ variables:
     value: 'exampletfstate'
   - name: backendAzureRmKey
     value: 'terraform.tfstate'
-  - name: backendAzureRmKeyAci
-    value: 'terraform-aci.tfstate'
   - name: environment
     value: 'production'
   - name: terraform_version
@@ -42,37 +40,10 @@ variables:
     value: 'sindhuaciacr'
  
 stages :  
-  - stage: terraform__aci
-    dependsOn: [Build]
+  - stage: terraform_base
     condition: ne('${{ parameters.Action }}', 'Destroy')
     jobs:
       - template: templates/terraform-apply.yaml
-        parameters:
-          backendServiceArm: '${{ variables.backendServiceArm }}'
-          backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-          backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-          backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-          backendAzureRmKey: '${{ variables.backendAzureRmKeyAci }}'
-          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-aci/'
-          environment: ${{ variables.environment }}
-          terraform_version: ${{ variables.terraform_version }}
- 
-  - stage: terraform_aci_destroy
-    condition: contains('${{ parameters.Action }}', 'Destroy')
-    jobs:
-      - template: templates/terraform-destroy.yaml
-        parameters:
-          backendServiceArm: '${{ variables.backendServiceArm }}'
-          backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-          backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-          backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-          backendAzureRmKey: '${{ variables.backendAzureRmKeyAci }}'
-          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform-aci/'
-          environment: ${{ variables.environment }}
-          terraform_version: ${{ variables.terraform_version }}
-          job_name: 'terraform_destroy_aci'
- 
-      - template: templates/terraform-destroy.yaml
         parameters:
           backendServiceArm: '${{ variables.backendServiceArm }}'
           backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
@@ -82,4 +53,12 @@ stages :
           workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
           environment: ${{ variables.environment }}
           terraform_version: ${{ variables.terraform_version }}
-          job_name: 'terraform_destroy_base'
+  - stage: Build
+    dependsOn: [terraform_base]
+    displayName: Build and push stage
+    jobs:
+    - template: templates/docker.yaml
+      parameters:
+        repository: ${{ variables.repository }}
+        dockerfile: ${{ variables.dockerfile }}
+        containerRegistry: ${{ variables.containerRegistry }}
