@@ -45,33 +45,33 @@ stages :
             displayName: 'install'
             inputs:
               terraformVersion: '${{ variables.terraform_version }}'
-          - task: TerraformTaskV2@2
-            displayName: 'init'
-            inputs:
-              provider: 'azurerm'
-              command: 'init'
-              backendServiceArm: '${{ variables.backendServiceArm }}'
-              backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-              backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-              backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-              backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-          - task: TerraformTaskV2@2
-            displayName: 'plan'
-            condition: and(succeeded(), eq(variables['Action'], 'Plan'))
-            inputs:
-              provider: 'azurerm'
-              command: 'plan'
-              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-          - task: TerraformTaskV2@2
-            displayName: 'apply'
-            condition: and(succeeded(), eq(variables['Action'], 'Apply'))
-            inputs:
-              provider: 'azurerm'
-              command: 'apply'
-              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          # - task: TerraformTaskV2@2
+          #   displayName: 'init'
+          #   inputs:
+          #     provider: 'azurerm'
+          #     command: 'init'
+          #     backendServiceArm: '${{ variables.backendServiceArm }}'
+          #     backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
+          #     backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
+          #     backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
+          #     backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
+          #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          # - task: TerraformTaskV2@2
+          #   displayName: 'plan'
+          #   condition: and(succeeded(), eq(variables['Action'], 'Plan'))
+          #   inputs:
+          #     provider: 'azurerm'
+          #     command: 'plan'
+          #     environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+          #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          # - task: TerraformTaskV2@2
+          #   displayName: 'apply'
+          #   condition: and(succeeded(), eq(variables['Action'], 'Apply'))
+          #   inputs:
+          #     provider: 'azurerm'
+          #     command: 'apply'
+          #     environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+          #     workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
 
   - stage: terraform_destroy
     condition: contains('${{ parameters.Action }}', 'Destroy')
