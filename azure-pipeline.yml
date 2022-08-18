@@ -46,7 +46,7 @@ stages :
     dependsOn: [Build]
     condition: ne('${{ parameters.Action }}', 'Destroy')
     jobs:
-      - template: templates/terraform-apply.yaml
+      - template: $(System.DefaultWorkingDirectory)/templates/terraform-apply.yaml
         parameters:
           backendServiceArm: '${{ variables.backendServiceArm }}'
           backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
@@ -60,7 +60,7 @@ stages :
   - stage: terraform_aci_destroy
     condition: contains('${{ parameters.Action }}', 'Destroy')
     jobs:
-      - template: templates/terraform-destroy.yaml
+      - template: $(System.DefaultWorkingDirectory)/templates/destroy.yaml
         parameters:
           backendServiceArm: '${{ variables.backendServiceArm }}'
           backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
@@ -72,7 +72,7 @@ stages :
           terraform_version: ${{ variables.terraform_version }}
           job_name: 'terraform_destroy_aci'
  
-      - template: templates/terraform-destroy.yaml
+      - template: $(System.DefaultWorkingDirectory)/templates/destroy.yaml
         parameters:
           backendServiceArm: '${{ variables.backendServiceArm }}'
           backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
