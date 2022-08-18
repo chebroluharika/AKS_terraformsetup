@@ -4,7 +4,7 @@ trigger: none
  
 pr: none
  
-parameters:
+variables:
  
   - name: Action
     displayName: Action
@@ -31,21 +31,45 @@ variables:
   - name: terraform_version
     value: '1.0.10'
   - name: action
-    value: ${{ parameters.Action }}
+    value: ${{ variables.Action }}
   - name: repository
     value: 'aci'
  
 stages :  
   - stage: terraform_base
-    condition: ne('${{ parameters.Action }}', 'Destroy')
+    condition: ne('${{ variables.Action }}', 'Destroy')
     jobs:
-      - template: '$(Build.SourcesDirectory)/templates/terraform-apply.yaml'
-        parameters:
-          backendServiceArm: '${{ variables.backendServiceArm }}'
-          backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
-          backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
-          backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
-          backendAzureRmKey: '${{ variables.backendAzureRmKey }}'
-          workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
-          environment: ${{ variables.environment }}
-          terraform_version: ${{ variables.terraform_version }}
+      - job: terraform_apply
+        steps:
+          - task: TerraformInstaller@0
+            displayName: 'install'
+            inputs:
+              terraformVersion: '${{ variables.terraform_version }}'
+          - task: TerraformTaskV2@2
+            displayName: 'init'
+            inputs:
+              provider: 'azurerm'
+              command: 'init'
+              backendServiceArm: '${{ variables.backendServiceArm }}'
+              backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
+              backendAzureRmStorageAccountName: '${{ variables.backendAzureRmStorageAccountName }}'
+              backendAzureRmContainerName: '${{ variables.backendAzureRmContainerName }}'
+              backendAzureRmKey: '${{ variables.backendAzureRmKey }}' 
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
+          - task: TerraformTaskV2@2
+            displayName: 'plan'
+            inputs:
+              provider: 'azurerm'
+              command: 'plan'
+              commandOptions: '-var build_id=$(Build.BuildId) -input=false -var-file="../tfvars/${{ variables.environment }}/${{ variables.environment }}.tfvars"'
+              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+          - task: TerraformTaskV2@2
+            displayName: 'apply'
+            condition: and(succeeded(), eq(variables['Action'], 'Apply'))
+            inputs:
+              provider: 'azurerm'
+              command: 'apply'
+              commandOptions: '-var build_id=$(Build.BuildId) -input=false -auto-approve -var-file="../tfvars/${{ variables.environment }}/${{ variables.environment }}.tfvars"'
+              environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
