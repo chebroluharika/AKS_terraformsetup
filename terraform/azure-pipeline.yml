@@ -17,12 +17,12 @@ parameters:
  
 variables:
   - name: backendServiceArm #manual creation before triggering pipeline
-    value: 'thomasthorntoncloud'
+    value: 'demoazureservicecon'
   - name: backendAzureRmResourceGroupName #manual creation before triggering pipeline
-    value: 'thomasthorntoncloud'
+    value: 'servuceconrg'
   - name: backendAzureRmStorageAccountName #manual creation before triggering pipeline
-    value: 'thomasthorntontfstate'
-  - name: backendAzureRmContainerName
+    value: 'servicecontfstate'
+  - name: backendAzureRmContainerName #manual creation before triggering pipeline
     value: 'exampletfstate'
   - name: backendAzureRmKey
     value: 'terraform.tfstate'
