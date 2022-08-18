@@ -58,18 +58,17 @@ stages :
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
           - task: TerraformTaskV2@2
             displayName: 'plan'
+            condition: and(succeeded(), eq(variables['Action'], 'Plan'))
             inputs:
               provider: 'azurerm'
               command: 'plan'
-              commandOptions: '-var build_id=$(Build.BuildId) -input=false -var-file="../tfvars/${{ variables.environment }}/${{ variables.environment }}.tfvars"'
               environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
-              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform'
+              workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'
           - task: TerraformTaskV2@2
             displayName: 'apply'
             condition: and(succeeded(), eq(variables['Action'], 'Apply'))
             inputs:
               provider: 'azurerm'
               command: 'apply'
-              commandOptions: '-var build_id=$(Build.BuildId) -input=false -auto-approve -var-file="../tfvars/${{ variables.environment }}/${{ variables.environment }}.tfvars"'
               environmentServiceNameAzureRM: '${{ variables.backendServiceArm }}'
               workingDirectory: '$(System.DefaultWorkingDirectory)/terraform/'

@@ -1,3 +1,3 @@
-rg_name = "sindhu-aci-rg"
+rg_name = "sindhu-rg"
 acr_name = "sindhuaciacr"
 location = "centralus"
