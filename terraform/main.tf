@@ -1,12 +1,12 @@
-resource "azurerm_resource_group" "rg" {
-  name     = var.rg_name
-  location = var.location
+resource "azurerm_resource_group" "sindhurg" {
+  name     = "sindhu-rg"
+  location = "centralus"
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                = var.acr_name
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = azurerm_resource_group.rg.location
+  name                = "sindhuaciacr"
+  resource_group_name = azurerm_resource_group.sindhurg.name
+  location            = azurerm_resource_group.sindhurg.location
   sku                 = "Standard"
   admin_enabled       = true
 }
