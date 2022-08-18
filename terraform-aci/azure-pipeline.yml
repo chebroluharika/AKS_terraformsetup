@@ -43,7 +43,7 @@ stages :
   - stage: terraform_base
     condition: ne('${{ parameters.Action }}', 'Destroy')
     jobs:
-      - template: $(System.DefaultWorkingDirectory)/templates/terraform-apply.yaml
+      - template: '$(Build.SourcesDirectory)/templates/terraform-apply.yaml'
         parameters:
           backendServiceArm: '${{ variables.backendServiceArm }}'
           backendAzureRmResourceGroupName: '${{ variables.backendAzureRmResourceGroupName }}'
@@ -57,7 +57,7 @@ stages :
     dependsOn: [terraform_base]
     displayName: Build and push stage
     jobs:
-    - template: $(System.DefaultWorkingDirectory)/templates/docker.yaml
+    - template: '$(Build.SourcesDirectory)/templates/docker.yaml'
       parameters:
         repository: ${{ variables.repository }}
         dockerfile: ${{ variables.dockerfile }}
